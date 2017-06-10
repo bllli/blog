@@ -1,4 +1,4 @@
-#encoding:utf-8
+# encoding:utf-8
 from flask import Blueprint
 
 tasks = Blueprint('tasks', __name__)

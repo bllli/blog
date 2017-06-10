@@ -1,9 +1,17 @@
-#encoding:utf-8
-#!/usr/bin/env python
+# encoding:utf-8
+# !/usr/bin/env python
+
+# py2中文
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 import os
+
 COV = None
 if os.environ.get('FLASK_COVERAGE'):
     import coverage
+
     COV = coverage.coverage(branch=True, include='app/*')
     COV.start()
 
@@ -27,11 +35,12 @@ migrate = Migrate(app, db)
 
 def make_shell_context():
     return dict(app=app, db=db, User=User, Follow=Follow, Role=Role,
-                Permission=Permission, Post=Post, Comment=Comment,Message=Message,Category=Category,Star=Star,Webpush=Webpush,deletenone=deletenone)
+                Permission=Permission, Post=Post, Comment=Comment, Message=Message, Category=Category, Star=Star,
+                Webpush=Webpush, deletenone=deletenone)
+
+
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
-
-
 
 
 @manager.command
@@ -65,28 +74,28 @@ def profile(length=25, profile_dir=None):
     app.run()
 
 
-#测试数据库初始化
+# 测试数据库初始化
 @manager.command
 def datainit():
-    from app.models import Role,User,Post,Category
-    print ("Category init")
-    Category.insert_categorys()    
-    print ("Role init")
+    from app.models import Role, User, Post, Category
+    print("Category init")
+    Category.insert_categorys()
+    print("Role init")
     User.add_self_follows()
-    Role.insert_roles()    
-    print ("User and Post generate")
+    Role.insert_roles()
+    print("User and Post generate")
     User.generate_fake(100)
-    Post.generate_fake(100)    
-    wen=User.query.filter_by(username='wen').first()
+    Post.generate_fake(100)
+    wen = User.query.filter_by(username='wen').first()
     if not wen:
-        print ("make wen in admin")
-        wen=User(username='wen',email='2535199139@qq.com',password='meian',confirmed=True)
-        wen.role=Role.query.filter_by(permissions=0xff).first()
+        print("make wen in admin")
+        wen = User(username='wen', email='2535199139@qq.com', password='meian', confirmed=True)
+        wen.role = Role.query.filter_by(permissions=0xff).first()
         db.session.add(wen)
-        db.session.commit()        
-    else :
-        print ("User(wen) already in data")    
-    print ("all_data readly now")
+        db.session.commit()
+    else:
+        print("User(wen) already in data")
+    print("all_data readly now")
 
 
 @manager.command

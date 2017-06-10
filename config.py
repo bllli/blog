@@ -1,4 +1,5 @@
 import os
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -19,11 +20,9 @@ class Config:
     FLASKY_POSTS_PER_PAGE = 20
     FLASKY_FOLLOWERS_PER_PAGE = 50
     FLASKY_COMMENTS_PER_PAGE = 30
-    FLASKY_SLOW_DB_QUERY_TIME=0.5
+    FLASKY_SLOW_DB_QUERY_TIME = 0.5
     CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
     CELERY_BROKER_URL = 'redis://localhost:6379/0'
-
-    
 
     @staticmethod
     def init_app(app):
@@ -33,23 +32,24 @@ class Config:
 class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'mysql://root:123456@localhost/flaskdev'
-        # os.environ.get('DEV_DATABASE_URL') or \
-                # 'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite') 
+    # os.environ.get('DEV_DATABASE_URL') or \
+    # 'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
 
 
 class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'mysql://root:meian@localhost/flasktest'
-                # os.environ.get('DEV_DATABASE_URL') or \
-                # 'sqlite:///' + os.path.join(basedir, 'data-test.sqlite')
+    # os.environ.get('DEV_DATABASE_URL') or \
+    # 'sqlite:///' + os.path.join(basedir, 'data-test.sqlite')
 
     WTF_CSRF_ENABLED = False
 
 
 class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'mysql://root:meian@localhost/flask'
-                # os.environ.get('DEV_DATABASE_URL') or \
-                # 'sqlite:///' + os.path.join(basedir, 'data.sqlite')
+
+    # os.environ.get('DEV_DATABASE_URL') or \
+    # 'sqlite:///' + os.path.join(basedir, 'data.sqlite')
 
 
     @classmethod

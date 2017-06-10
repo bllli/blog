@@ -1,7 +1,6 @@
 from flask import Flask, redirect, url_for, session, request, jsonify
 from flask_oauthlib.client import OAuth
 
-
 app = Flask(__name__)
 app.debug = True
 app.secret_key = 'development'
@@ -34,8 +33,8 @@ def index():
 @app.route('/login')
 def login():
     return weibo.authorize(callback=url_for('authorized',
-        next=request.args.get('next') or request.referrer or None,
-        _external=True))
+                                            next=request.args.get('next') or request.referrer or None,
+                                            _external=True))
 
 
 @app.route('/logout')
@@ -70,8 +69,8 @@ def change_weibo_header(uri, headers, body):
         headers['Authorization'] = auth
     return uri, headers, body
 
-weibo.pre_request = change_weibo_header
 
+weibo.pre_request = change_weibo_header
 
 if __name__ == '__main__':
     app.run()

@@ -1,4 +1,4 @@
-#encoding:utf-8
+# encoding:utf-8
 from datetime import datetime
 import hashlib
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -11,14 +11,13 @@ from app.exceptions import ValidationError
 from . import db, login_manager
 
 
-
-
 class Permission:
     FOLLOW = 0x01
     COMMENT = 0x02
     WRITE_ARTICLES = 0x04
     MODERATE_COMMENTS = 0x08
     ADMINISTER = 0x80
+
 
 class Role(db.Model):
     __tablename__ = 'roles'
@@ -62,36 +61,41 @@ class Follow(db.Model):
                             primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.now)
 
-#网站推送
+
+# 网站推送
 class Webpush(db.Model):
     __tablename__ = 'webpushs'
     id = db.Column(db.Integer, primary_key=True)
-    timestamp = db.Column(db.DateTime,  default=datetime.now) 
-    confirmed = db.Column(db.Boolean,default=False)
+    timestamp = db.Column(db.DateTime, default=datetime.now)
+    confirmed = db.Column(db.Boolean, default=False)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     sendto_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
-    def __repr__(self):
-        return '<Webpush %r  push_time %r >' % (self.sendto,self.timestamp)
 
-#私信
+    def __repr__(self):
+        return '<Webpush %r  push_time %r >' % (self.sendto, self.timestamp)
+
+
+# 私信
 class Message(db.Model):
     __tablename__ = 'messages'
     id = db.Column(db.Integer, primary_key=True)
     body = db.Column(db.Text)
-    timestamp = db.Column(db.DateTime,  default=datetime.now)    
+    timestamp = db.Column(db.DateTime, default=datetime.now)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     sendto_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    confirmed = db.Column(db.Boolean,default=False)
-    def __repr__(self):
-        return '<Message %r  from %r sent to %r>' % (self.body,self.author.username,self.sendto.username)
+    confirmed = db.Column(db.Boolean, default=False)
 
-#收藏
+    def __repr__(self):
+        return '<Message %r  from %r sent to %r>' % (self.body, self.author.username, self.sendto.username)
+
+
+# 收藏
 class Star(db.Model):
-    __tablename__= 'stars'
+    __tablename__ = 'stars'
     id = db.Column(db.Integer, primary_key=True)
-    user_id=db.Column(db.Integer, db.ForeignKey('users.id'))
-    post_id=db.Column(db.Integer, db.ForeignKey('posts.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
     timestamp = db.Column(db.DateTime, default=datetime.now)
 
 
@@ -110,7 +114,7 @@ class User(UserMixin, db.Model):
     last_seen = db.Column(db.DateTime(), default=datetime.now)
     avatar_hash = db.Column(db.String(32))
     posts = db.relationship('Post', backref='author', lazy='dynamic')
-    starposts = db.relationship('Post',secondary='stars',backref=db.backref('stared',lazy='joined'),lazy='joined')
+    starposts = db.relationship('Post', secondary='stars', backref=db.backref('stared', lazy='joined'), lazy='joined')
     followed = db.relationship('Follow',
                                foreign_keys=[Follow.follower_id],
                                backref=db.backref('follower', lazy='joined'),
@@ -121,13 +125,13 @@ class User(UserMixin, db.Model):
                                 backref=db.backref('followed', lazy='joined'),
                                 lazy='dynamic',
                                 cascade='all, delete-orphan')
-    commented = db.relationship('Comment',backref='sendto', lazy='dynamic', primaryjoin='Comment.sendto_id==User.id')
+    commented = db.relationship('Comment', backref='sendto', lazy='dynamic', primaryjoin='Comment.sendto_id==User.id')
 
     # commenters = db.relationship('Comment',backref='author', lazy='dynamic',primaryjoin='Comment.author_id==User.id')
 
-    comments = db.relationship('Comment', backref='author', lazy='dynamic',primaryjoin='Comment.author_id==User.id')
+    comments = db.relationship('Comment', backref='author', lazy='dynamic', primaryjoin='Comment.author_id==User.id')
 
-    messages = db.relationship('Message', backref='author', lazy='dynamic',primaryjoin='Message.author_id==User.id')
+    messages = db.relationship('Message', backref='author', lazy='dynamic', primaryjoin='Message.author_id==User.id')
 
     messageds = db.relationship('Message', backref='sendto', lazy='dynamic', primaryjoin='Message.sendto_id==User.id')
 
@@ -135,87 +139,87 @@ class User(UserMixin, db.Model):
 
     websents = db.relationship('Webpush', backref='author', lazy='dynamic', primaryjoin='Webpush.author_id==User.id')
 
-
-
-#订阅
+    # 订阅
     def unreadwebpushs(self):
-        webpushs=self.webpushs
-        maxi=self.webpushs.count()
-        total=0
-        for i in range(0,maxi):
+        webpushs = self.webpushs
+        maxi = self.webpushs.count()
+        total = 0
+        for i in range(0, maxi):
             if not self.webpushs[i].confirmed:
-                total=total+1
+                total = total + 1
         return total
+
     def lastwebpush(self):
-        if self.webpushs.count()>0:
+        if self.webpushs.count() > 0:
             return self.webpushs[-1]
-        
 
 
 
 
-#收藏/取消收藏
-    def star(self,post):
+
+            # 收藏/取消收藏
+
+    def star(self, post):
         if not self.staring(post):
-            s = Star(user_id=self.id,post_id=post.id)
+            s = Star(user_id=self.id, post_id=post.id)
             db.session.add(s)
             db.session.commit()
-    def unstar(self,post):
+
+    def unstar(self, post):
         if self.staring(post):
-            uns = Star.query.filter_by(user_id=self.id,post_id=post.id).first()
+            uns = Star.query.filter_by(user_id=self.id, post_id=post.id).first()
             db.session.delete(uns)
             db.session.commit()
 
-    def staring(self,post):
-        if Star.query.filter_by(user_id=self.id,post_id=post.id).first():
+    def staring(self, post):
+        if Star.query.filter_by(user_id=self.id, post_id=post.id).first():
             return True
         else:
             return False
-    def startimestamp(self,post):
-        star=Star.query.filter_by(user_id=self.id,post_id=post.id).first()
+
+    def startimestamp(self, post):
+        star = Star.query.filter_by(user_id=self.id, post_id=post.id).first()
         return star.timestamp
 
-#私信
-    
+    # 私信
+
     def unreadmessages(self):
-        maxi=self.messageds.count()
-        total=0
-        for i in range(0,maxi):            
+        maxi = self.messageds.count()
+        total = 0
+        for i in range(0, maxi):
             if not self.messageds[i].confirmed:
-                total=total+1
+                total = total + 1
         return total
+
     def lastmessage(self):
-        last=self.messageds[-1]
+        last = self.messageds[-1]
         return last
+
     def lastmessageform(self):
-        lastform=self.messageds[-1].author
+        lastform = self.messageds[-1].author
         return lastform
 
+    # 计算被评论数
 
-
-
-#计算被评论数
-
-    def unreadcommenteds(self): 
-        total=0
-        for comment in self.commented: 
-            if not comment.confirmed:                    
-                total=total+1                   
+    def unreadcommenteds(self):
+        total = 0
+        for comment in self.commented:
+            if not comment.confirmed:
+                total = total + 1
         return total
 
     def lastcomment(self):
         return self.commented[-1]
+
     def lastcommentform(self):
         return self.commented[-1].author
-
-
 
     @staticmethod
     def generate_fake(count=100):
         from sqlalchemy.exc import IntegrityError
         from random import seed
         import forgery_py
-  
+
         seed()
         for i in range(count):
             u = User(email=forgery_py.internet.email_address(),
@@ -320,7 +324,7 @@ class User(UserMixin, db.Model):
 
     def can(self, permissions):
         return self.role is not None and \
-            (self.role.permissions & permissions) == permissions
+               (self.role.permissions & permissions) == permissions
 
     def is_administrator(self):
         return self.can(Permission.ADMINISTER)
@@ -340,7 +344,7 @@ class User(UserMixin, db.Model):
             url=url, hash=hash, size=size, default=default, rating=rating)
 
     def add_allfollow(self):
-        for user in User.query.all():            
+        for user in User.query.all():
             user.follow(self)
             db.session.add(self)
             db.session.commit()
@@ -365,7 +369,7 @@ class User(UserMixin, db.Model):
 
     @property
     def followed_posts(self):
-        return Post.query.join(Follow, Follow.followed_id == Post.author_id)\
+        return Post.query.join(Follow, Follow.followed_id == Post.author_id) \
             .filter(Follow.follower_id == self.id)
 
     def to_json(self):
@@ -406,13 +410,13 @@ class AnonymousUser(AnonymousUserMixin):
     def is_administrator(self):
         return False
 
+
 login_manager.anonymous_user = AnonymousUser
 
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
 
 
 class Category(db.Model):
@@ -423,42 +427,40 @@ class Category(db.Model):
 
     @staticmethod
     def insert_categorys():
-        categorylist = ["Python","Web","Linux","c/c++","数据库","前端","杂记"]
-        for category in  categorylist:
-            postcategory=Category.query.filter_by(name=category).first()
+        categorylist = ["Python", "Web", "Linux", "c/c++", "数据库", "前端", "杂记"]
+        for category in categorylist:
+            postcategory = Category.query.filter_by(name=category).first()
             if postcategory is None:
-                postcategory=Category(name=category)
+                postcategory = Category(name=category)
                 db.session.add(postcategory)
         db.session.commit()
+
     def __repr__(self):
         return '<Category %r>' % self.name
-
 
 
 class Post(db.Model):
     __tablename__ = 'posts'
     id = db.Column(db.Integer, primary_key=True)
-    head = db.Column(db.Text) #增加博客标题
+    head = db.Column(db.Text)  # 增加博客标题
     body = db.Column(db.Text)
     body_html = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.now)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     comments = db.relationship('Comment', backref='post', lazy='dynamic')
     category_id = db.Column(db.Integer, db.ForeignKey('categorys.id'))
-    visits = db.Column(db.Integer,nullable=False,default=int(10))
-    webpushs = db.relationship('Webpush',backref='post',lazy='dynamic')
+    visits = db.Column(db.Integer, nullable=False, default=int(10))
+    webpushs = db.relationship('Webpush', backref='post', lazy='dynamic')
 
     @staticmethod
-    def hotpost():    #热门文章排序，取前10    
+    def hotpost():  # 热门文章排序，取前10
         posts = Post.query.all()
 
         def byvisits(p):
             return p.visits
 
-        posts_byvisits=sorted(posts,key=byvisits,reverse=True)
+        posts_byvisits = sorted(posts, key=byvisits, reverse=True)
         return posts_byvisits[0:10]
-
-
 
     @staticmethod
     def generate_fake(count=100):
@@ -467,13 +469,13 @@ class Post(db.Model):
 
         seed()
         user_count = User.query.count()
-        category_count=Category.query.count()
+        category_count = Category.query.count()
         for i in range(count):
             u = User.query.offset(randint(0, user_count - 1)).first()
             ca = Category.query.offset(randint(0, category_count - 1)).first()
             p = Post(body=forgery_py.lorem_ipsum.sentences(randint(1, 3)),
                      timestamp=forgery_py.date.date(True),
-                     author=u,category=ca)
+                     author=u, category=ca)
             db.session.add(p)
             db.session.commit()
 
@@ -521,8 +523,7 @@ class Comment(db.Model):
     sendto_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
-    confirmed = db.Column(db.Boolean,default=False)
-
+    confirmed = db.Column(db.Boolean, default=False)
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
@@ -550,8 +551,8 @@ class Comment(db.Model):
         if body is None or body == '':
             raise ValidationError('comment does not have a body')
         return Comment(body=body)
-    def __repr__(self):
-        return '<Comment %r,%r >' %( self.body,self.author)
 
+    def __repr__(self):
+        return '<Comment %r,%r >' % (self.body, self.author)
 
 # db.event.listen(Comment.body, 'set', Comment.on_changed_body)

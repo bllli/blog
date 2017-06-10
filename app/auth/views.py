@@ -1,3 +1,4 @@
+# encoding:utf-8
 from flask import render_template, redirect, request, url_for, flash, g
 from flask.ext.login import login_user, logout_user, login_required, \
     current_user
@@ -5,24 +6,21 @@ import os
 
 from . import auth
 from .. import db
-from ..models import User,Post
+from ..models import User, Post
 from ..email import send_email
-from .forms import LoginForm, RegistrationForm, ChangePasswordForm,\
+from .forms import LoginForm, RegistrationForm, ChangePasswordForm, \
     PasswordResetRequestForm, PasswordResetForm, ChangeEmailForm
 from datetime import datetime
 
 
-
-
-
 @auth.before_app_request
-def before_request():  #定义全局变量
+def before_request():  # 定义全局变量
     # g.hot_post=Post().hotpost()
     # g.current_time=datetime.utcnow()
     if current_user.is_authenticated:
         current_user.ping()
         if not current_user.confirmed \
-		and request.endpoint[:5] != 'auth.' \
+                and request.endpoint[:5] != 'auth.' \
                 and request.endpoint != 'static':
             return render_template('auth/unconfirmed.html')
 

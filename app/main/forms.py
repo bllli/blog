@@ -1,12 +1,11 @@
-#encoding:utf-8
+# encoding:utf-8
 from flask.ext.wtf import Form
-from wtforms import StringField, TextAreaField, BooleanField, SelectField,\
-    SubmitField,FieldList
-from wtforms.validators import Required, Length, Email, Regexp,AnyOf
+from wtforms import StringField, TextAreaField, BooleanField, SelectField, \
+    SubmitField, FieldList
+from wtforms.validators import Required, Length, Email, Regexp, AnyOf
 from wtforms import ValidationError
 from flask.ext.pagedown.fields import PageDownField
 from ..models import Role, User, Message, Category
-
 
 
 class SendmessageForm(Form):
@@ -25,22 +24,22 @@ class EditProfileForm(Form):
     about_me = TextAreaField('关于我')
     submit = SubmitField('提交')
 
-class PostForm(Form): 
-    category = SelectField('文章类别', coerce=int)  
-    head = StringField('标题', validators=[Required(), Length(1, 25)])    
-    body = PageDownField("正文", validators=[Required()])    
-    submit = SubmitField('发布')
-    
 
-    def __init__(self, *args, **kwargs): #定义下拉选择表
-        super(PostForm,self).__init__(*args, **kwargs)
+class PostForm(Form):
+    category = SelectField('文章类别', coerce=int)
+    head = StringField('标题', validators=[Required(), Length(1, 25)])
+    body = PageDownField("正文", validators=[Required()])
+    submit = SubmitField('发布')
+
+    def __init__(self, *args, **kwargs):  # 定义下拉选择表
+        super(PostForm, self).__init__(*args, **kwargs)
         self.category.choices = [(category.id, category.name)
-                             for category in Category.query.order_by(Category.name).all()]
+                                 for category in Category.query.order_by(Category.name).all()]
 
 
 class EditProfileAdminForm(Form):
     email = StringField('电子邮箱(Email)', validators=[Required(), Length(1, 64),
-                                             Email()])
+                                                   Email()])
     username = StringField('用户名', validators=[
         Required(), Length(1, 64), Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0,
                                           'Usernames must have only letters, '
@@ -68,10 +67,11 @@ class EditProfileAdminForm(Form):
                 User.query.filter_by(username=field.data).first():
             raise ValidationError('用户名已存在')
 
+
 class CommentForm(Form):
     body = StringField('输入你的评论', validators=[Required()])
     submit = SubmitField('提交')
 
 
 class SearchForm(Form):
-    search = StringField('search', validators = [Required()])
+    search = StringField('search', validators=[Required()])
